@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model tasks {
+  id          Int         @id @default(autoincrement())
+  memberId    Int
+  description String      @db.Text
+  timeStamps  Json?
+  createdAt   DateTime    @default(now()) @db.Timestamp(0)
+  updatedAt   DateTime    @default(now()) @db.Timestamp(0)
+  teammembers teammembers @relation(fields: [memberId], references: [id], onDelete: Cascade, map: "tasks_ibfk_1")
+
+  @@index([memberId], map: "user_id")
+}
+
+model managers {
+  id          Int           @id @default(autoincrement())
+  firstName   String        @db.VarChar(127)
+  lastName    String        @db.VarChar(127)
+  department  String        @db.VarChar(127)
+  createdAt   DateTime      @default(now()) @db.Timestamp(0)
+  updatedAt   DateTime      @default(now()) @db.Timestamp(0)
+  teammembers teammembers[]
+}
+
+model teammembers {
+  id          Int      @id @default(autoincrement())
+  firstName   String?  @db.VarChar(64)
+  lastName    String?  @db.VarChar(64)
+  managerId   Int
+  officeEmail String?  @db.VarChar(127)
+  password    String   @db.VarChar(127)
+  department  String   @db.VarChar(127)
+  designation String   @db.VarChar(127)
+  createdAt   DateTime @default(now()) @db.Timestamp(0)
+  updatedAt   DateTime @default(now()) @db.Timestamp(0)
+  tasks       tasks[]
+  managers    managers @relation(fields: [managerId], references: [id], onDelete: Cascade, map: "teammembers_ibfk_1")
+
+  @@index([managerId], map: "managerId")
+}
