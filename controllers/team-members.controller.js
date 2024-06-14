@@ -1,5 +1,5 @@
 const { PrismaClient } = require("@prisma/client");
-const jwt = require("jsonwebtoken");
+const { Tokens } = require("../controllers/token-controller");
 
 class TeamMembers {
   #prisma;
@@ -19,11 +19,20 @@ class TeamMembers {
         designation,
       } = body;
 
+      const user = await this.#prisma.teammembers.findFirst({
+        where: {
+          officeEmail,
+        },
+      });
+
+      if (user) {
+        throw new Error("User already registered");
+      }
       if (password !== confirmPassword) {
         throw new Error("Password does not match");
       }
 
-      const token = this.token(officeEmail, password);
+      const token = Token.token(officeEmail, password);
 
       const record = await this.#prisma.teammembers.create({
         data: {
@@ -70,11 +79,22 @@ class TeamMembers {
       });
       return { message: "Member deleted successfully" };
     } catch (error) {
-      console.log("error", error.message);
+      throw new Error(error.message);
     }
   }
-  token(officeEmail, password) {
-    return jwt.sign({ officeEmail, password }, process.env.JWT_PRIVATE_KEY);
+
+  async login(officeEmail, password) {
+    const user = await this.#prisma.teammembers.findFirst({
+      where: {
+        officeEmail,
+      },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    return { data: { ...user }, token: Tokens.token(officeEmail, password) };
   }
 }
 module.exports = { TeamMembers };

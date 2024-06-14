@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const { TeamMembers } = require("../controllers/team-members.controller");
-
+const { authMiddleWare } = require("../middlewares/auth-middleware");
 const member = new TeamMembers();
 
-router.get("/", async function (req, res, next) {
+router.get("/", authMiddleWare, async function (req, res, next) {
   try {
     const data = await member.readMembers();
     res.json({ status: "success", data });
@@ -24,7 +24,7 @@ router.post("/", async function (req, res, next) {
   }
 });
 
-router.patch("/:id", async function (req, res, next) {
+router.patch("/:id", authMiddleWare, async function (req, res, next) {
   try {
     const id = req.params.id;
     const { body } = req;
@@ -34,12 +34,25 @@ router.patch("/:id", async function (req, res, next) {
   }
 });
 
-router.delete("/:id", async function (req, res, next) {
+router.delete("/:id", authMiddleWare, async function (req, res, next) {
   try {
     const { id } = req.params;
     res.json({ status: "success", ...(await member.deleteMember(id)) });
   } catch (error) {
-    res.send(500).json({ status: "error", message: error.message });
+    res.status(500).json({ status: "error", message: error.message });
+  }
+});
+
+router.post("/log-in", async function (req, res, next) {
+  try {
+    const { body } = req;
+
+    res.json({
+      status: "success",
+      ...(await member.login(body.officeEmail, body.password)),
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: error.message });
   }
 });
 

@@ -11,7 +11,7 @@ const usersRouter = require("./routes/users");
 const teamMemberRouter = require("./routes/team-members.route");
 const taskRouter = require("./routes/tasks.routes");
 const managersRouter = require("./routes/managers.route");
-
+const { authMiddleWare } = require("./middlewares/auth-middleware");
 const app = express();
 
 app.set("views", path.join(__dirname, "views"));
@@ -27,7 +27,7 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/managers", managersRouter);
 app.use("/team-members", teamMemberRouter);
-app.use("/tasks",taskRouter)
+app.use("/tasks", authMiddleWare, taskRouter);
 
 app.use(function (req, res, next) {
   next(createError(404));
