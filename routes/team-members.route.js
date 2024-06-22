@@ -46,6 +46,7 @@ router.delete("/:id", authMiddleWare, async function (req, res, next) {
 router.post("/log-in", async function (req, res, next) {
   try {
     const { body } = req;
+    console.log(body);
 
     res.json({
       status: "success",
